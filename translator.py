@@ -11,13 +11,24 @@ This script is for the purpose of finding different kind of words that will be p
 import urllib2
 import numpy as np;
 from sys import platform
-
+import simplejson
+import cStringIO
 from joblib import Parallel, delayed
 
+from bs4 import BeautifulSoup
+import requests
+import re
 
+import os
+import cookielib
+import json
+
+
+from PIL import Image
 init_language = "en";
-transfer_languages = ['ar','bg','zh','zh-TW','hr','cs','da','nl','eo','et','tl','fi','fr','ka','de','el','iw','hu','is','id','ga','it','ja','jw','ko','la','ms','no','fa','pl','pt','ru','sk','sl','es','sv','th','tr','uk','vi']
-words = ["Bike","Car","Train","Person"]
+transfer_languages = [init_language,'ar','bg','zh','zh-TW','hr','cs','da','nl','eo','et','tl','fi','fr','ka','de','el','iw','hu','is','id','ga','it','ja','jw','ko','la','ms','no','fa','pl','pt','ru','sk','sl','es','sv','th','tr','uk','vi']
+#words = ["Bike","Car","Train","Person"]
+words = ["Syringe"]
 
 MT = 0;
 
@@ -38,6 +49,8 @@ def translate(word, sourceLanguage, targetLanguage):
 def translateWrapper(i,transfer_languages,words):
     return translate(words[i], init_language, transfer_languages[i])
     
+def get_soup(url,header):
+    return BeautifulSoup(urllib2.urlopen(urllib2.Request(url,headers=header)),'html.parser')
     
 
 #Multithreading under windows sucks
@@ -59,4 +72,57 @@ else:
         else:
             u = np.append(u,np.unique(x));
             s = np.append(s,len(np.unique(x)))
+    
+for i in range(0,len(u)):        
+    print "now language" + str()    
+    query = u[i]
+    print query    
+    
+    #query = raw_input(u[0])# you can change the query for the image  here
+    image_type="ActiOn"
+    #query= query.split()
+    #query='+'.join(query)
+    query = u[0]
+    url="https://www.google.co.in/search?q="+query+"&source=lnms&tbm=isch"
+    print url
+    #add the directory for your image here
+    DIR="new"
+    header={'User-Agent':"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.2357.134 Safari/537.36"
+    }
+    soup = get_soup(url,header)
 
+
+    ActualImages=[]# contains the link for Large original images, type of  image
+    for a in soup.find_all("div",{"class":"rg_meta"}):
+        link , Type =json.loads(a.text)["ou"]  ,json.loads(a.text)["ity"]
+        ActualImages.append((link,Type))
+
+print  "there are total" , len(ActualImages),"images"
+"""
+if not os.path.exists(DIR):
+            os.mkdir(DIR)
+            print "Could not find folder!,making new one"
+DIR = os.path.join(DIR, query.split()[0])
+
+if not os.path.exists(DIR):
+            os.mkdir(DIR)
+###print images
+for i , (img , Type) in enumerate( ActualImages):
+    try:
+        req = urllib2.Request(img, headers={'User-Agent' : header})
+        raw_img = urllib2.urlopen(req).read()
+
+        cntr = len([i for i in os.listdir(DIR) if image_type in i]) + 1
+        print cntr
+        if len(Type)==0:
+            f = open(os.path.join(DIR , image_type + "_"+ str(cntr)+".jpg"), 'wb')
+        else :
+            f = open(os.path.join(DIR , image_type + "_"+ str(cntr)+"."+Type), 'wb')
+
+
+        f.write(raw_img)
+        f.close()
+    except Exception as e:
+        print "could not load : "+img
+        print e
+"""
